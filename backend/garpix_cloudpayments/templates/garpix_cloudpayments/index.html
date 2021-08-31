@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Garpix CloudPayments</title>
+    <script src="https://widget.cloudpayments.ru/bundles/cloudpayments"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+
+<label>Номер заказа (order_number):<input type="text" value="1" name="order_number" class="jsOrderNumber"></label>
+<button onclick="getDataAndPay(); return false;">Оплатить</button>
+
+<script>
+    function getDataAndPay() {
+        var orderNumber = document.querySelector('.jsOrderNumber').value;
+        axios.get('/cloudpayments/payment_data/?order_number=' + orderNumber)
+            .then(function (paymentData) {
+                console.log(paymentData);
+                pay(paymentData);
+            })
+    }
+
+
+    function pay(paymentData) {
+        var widget = new cp.CloudPayments();
+        widget.pay('auth', // или 'charge'
+            paymentData,
+            {
+                onSuccess: function (options) { // success
+                    //действие при успешной оплате
+                    alert('success');
+                },
+                onFail: function (reason, options) { // fail
+                    //действие при неуспешной оплате
+                    alert('fail');
+                },
+                onComplete: function (paymentResult, options) { //Вызывается как только виджет получает от api.cloudpayments ответ с результатом транзакции.
+                    //например вызов вашей аналитики Facebook Pixel
+                    alert('complete')
+                }
+            }
+        )
+    };
+</script>
+</body>
+</html>
