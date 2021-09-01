@@ -1,48 +1,149 @@
 # Garpix CloudPayments
 
-Cookiecutter template for GarpixCMS == 1.0.0.
+Прием платажей с CloudPayments.
 
-## Install
+## Быстрый старт
 
-1. Install Docker and docker-compose.
-   
-For Debian, Ubuntu:
+Установите через pipenv:
 
-```
-su
-apt update; apt upgrade -y; apt install -y curl; curl -sSL https://get.docker.com/ | sh; curl -L https://github.com/docker/compose/releases/download/1.28.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose
+```bash
+pipenv install garpix_cloudpayments
 ```
 
-Don't forget press CTRL+D to exit from super user account.
+Добавьте `garpix_cloudpayments` в `INSTALLED_APPS` и укажите адрес для миграций:
 
-2. Apply environment variables:
+```python
+# settings.py
 
-```
-cp example.env .env
-```
-
-3. Change a random string for `SECRET_KEY` and `POSTGRES_PASSWORD` in `.env`.
-
-4. Install dependencies:
-
-```
-pipenv install
-pipenv shell
+INSTALLED_APPS += [
+    'garpix_cloudpayments',
+]
+MIGRATION_MODULES = {
+    # ...
+}
+MIGRATION_MODULES['garpix_cloudpayments'] = 'app.migrations.garpix_cloudpayments'
 ```
 
-5. Up docker-compose, migrate database and create super user:
+Создайте директории и файлы:
 
+```bash
+backend/app/migrations/garpix_cloudpayments/
+backend/app/migrations/garpix_cloudpayments/__init__.py
 ```
-docker-compose up -d
+
+Сделайте миграции и мигрируйте:
+
+```bash
 python3 backend/manage.py makemigrations
 python3 backend/manage.py migrate
-python3 backend/manage.py createsuperuser
 ```
 
-6. Run the server:
+Добавьте пути в `urls.py`:
+
+```python
+from django.urls import path, include
+
+urlpatterns = [
+    path('cloudpayments/', include('garpix_cloudpayments.urls')),
+    # ...
+]
+```
+
+Также, добавьте в личном кабинете CloudPayments ссылки на эти коллбеки:
+
+* `Pay уведомление` => `https://example.com/cloudpayments/pay/`
+
+* `Fail уведомление` => `https://example.com/cloudpayments/fail/`
+
+После этого необходимо зайти в административную панель и добавить публичный ключ из личного кабинета CloudPayments.
+
+При изменении статуса платежа, дергается функция, указанная в `app/settings.py` (вы можете поменять на свою функцию и указать путь до нее):
 
 ```
-python3 backend/manage.py runserver
+# app/settings.py
+
+GARPIX_PAYMENT_STATUS_CHANGED_CALLBACK = 'garpix_payment.callbacks.empty_callback'
 ```
 
-7. Enjoy!
+Пример функции:
+
+```python
+from garpix_cloudpayments.models.choices import PAYMENT_STATUS_COMPLETED, PAYMENT_STATUS_CANCELLED, PAYMENT_STATUS_DECLINED
+
+
+def my_callback(payment):
+    if payment.status == PAYMENT_STATUS_COMPLETED:
+        print('Меняем статус заказа на успешный')
+    elif payment.status in (PAYMENT_STATUS_CANCELLED, PAYMENT_STATUS_DECLINED):
+        print('Заказ провален')
+    else:
+        print('Можем тоже использовать')
+```
+
+Ниже пример работы на фронтенде (до вызова точки `/cloudpayments/payment_data/` необходимо создать объект модели `Payment`):
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Garpix CloudPayments</title>
+    <script src="https://widget.cloudpayments.ru/bundles/cloudpayments"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+
+<label>Номер заказа (order_number):<input type="text" value="1" name="order_number" class="jsOrderNumber"></label>
+<button onclick="getDataAndPay(); return false;">Оплатить</button>
+
+<script>
+    function getDataAndPay() {
+        var orderNumber = document.querySelector('.jsOrderNumber').value;
+        axios.get('/cloudpayments/payment_data/?order_number=' + orderNumber)
+            .then(function (paymentData) {
+                console.log(paymentData);
+                pay(paymentData);
+            })
+    }
+
+
+    function pay(paymentData) {
+        var widget = new cp.CloudPayments();
+        widget.pay('auth', // или 'charge'
+            paymentData,
+            {
+                onSuccess: function (options) { // success
+                    //действие при успешной оплате
+                    alert('success');
+                },
+                onFail: function (reason, options) { // fail
+                    //действие при неуспешной оплате
+                    alert('fail');
+                },
+                onComplete: function (paymentResult, options) { //Вызывается как только виджет получает от api.cloudpayments ответ с результатом транзакции.
+                    //например вызов вашей аналитики Facebook Pixel
+                    alert('complete')
+                }
+            }
+        )
+    };
+</script>
+</body>
+</html>
+```
+
+# Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
+# Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+# License
+
+[MIT](LICENSE)
+
+---
+
+Developed by Garpix / [https://garpix.com](https://garpix.com)
