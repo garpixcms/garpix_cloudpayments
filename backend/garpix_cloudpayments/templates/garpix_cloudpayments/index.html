@@ -8,13 +8,13 @@
 </head>
 <body>
 
-<label>Номер заказа (order_number):<input type="text" value="1" name="order_number" class="jsOrderNumber"></label>
+<label>Номер заказа (payment_uuid):<input type="text" value="1" name="payment_uuid" class="jsPaymentUUID"></label>
 <button onclick="getDataAndPay(); return false;">Оплатить</button>
 
 <script>
     function getDataAndPay() {
-        var orderNumber = document.querySelector('.jsOrderNumber').value;
-        axios.get('/cloudpayments/payment_data/?order_number=' + orderNumber)
+        var paymentUUID = document.querySelector('.jsPaymentUUID').value;
+        axios.get('/cloudpayments/payment_data/?payment_uuid=' + paymentUUID)
             .then(function (paymentData) {
                 console.log(paymentData);
                 pay(paymentData);

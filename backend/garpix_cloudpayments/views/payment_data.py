@@ -5,9 +5,9 @@ from ..models.payment import Payment
 
 def payment_data_view(request):
     config = Config.get_solo()
-    order_number = request.GET.get('order_number')
+    payment_uuid = request.GET.get('payment_uuid')
     try:
-        payment = Payment.objects.get(order_number=order_number)
+        payment = Payment.objects.get(payment_uuid=payment_uuid)
         return JsonResponse({
             'publicId': config.public_id,
             'description': 'Оплата товара',
