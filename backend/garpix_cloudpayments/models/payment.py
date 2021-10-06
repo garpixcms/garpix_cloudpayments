@@ -2,6 +2,8 @@ from django.db import models
 from .choices import PAYMENT_STATUS_CHOICES, PAYMENT_STATUS_AWAITING_AUTHENTICATION
 import uuid
 
+from ..apps import GarpixCloudpaymentsConfig
+
 
 def generate_uuid():
     return uuid.uuid4().hex
@@ -18,3 +20,7 @@ class Payment(models.Model):
 
     def __str__(self):
         return f'{self.order_number} ({self.price}) - {self.status}'
+
+    @property
+    def template_name(self) -> str:
+        return f'{GarpixCloudpaymentsConfig.name}/index.html'

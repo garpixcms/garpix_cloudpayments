@@ -17,18 +17,20 @@
     <form class="lead">
         <label>Номер заказа (payment_uuid):
             <input type="text" {% if payment_uuid %} required value="{{payment_uuid}}" {% endif %} name="payment_uuid" class="jsPaymentUUID">
-        </label>
-        <button onclick="getDataAndPay(); return false;">Оплатить</button>
+        </label><br>
+        <button onclick="getDataAndPay(); return false;" class="btn btn-primary btn-lg">Оплатить</button>
     </form>
     <hr />
 
+    <p>Ссылка на документацию: <a href="https://developers.cloudpayments.ru/#api">API Cloud Payments</a></p>
     <section>
-        <ol>Тестовая карта:
+        <p>Тестовая карта для проверки:</p>
+        <ul>
             <li>Номер карты: <code>4111 1111 1111 1111</code></li>
             <li>ММ: <code>10</code></li>
             <li>ГГ: <code>21</code> (текущий год)</li>
             <li>CVC: <code>888</code></li>
-        </ol>
+        </ul>
     </section>
 <script>
     const pathPaymentData = "/cloudpayments/payment_data/?payment_uuid="
