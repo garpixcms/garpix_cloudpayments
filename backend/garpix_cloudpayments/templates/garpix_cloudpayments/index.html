@@ -3,45 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <title>Garpix CloudPayments</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <script src="https://widget.cloudpayments.ru/bundles/cloudpayments"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
-<body>
+<body class="container">
+    <h1>Пример формы оплаты</h1>
+    <p><code>payment_uuid</code>: {% if payment_uuid %}{{ payment_uuid }}{%else%} <i class="text-danger">Undefined</i> {%endif%}</p>
+    <p>Свойство в модели <b>Payment</b> которое нужно передать в форму.</p>
+    <a href="/admin/garpix_cloudpayments/payment/">Создать платежку</a>
 
-<label>Номер заказа (payment_uuid):<input type="text" value="1" name="payment_uuid" class="jsPaymentUUID"></label>
-<button onclick="getDataAndPay(); return false;">Оплатить</button>
+    <hr />
+    <form class="lead">
+        <label>Номер заказа (payment_uuid):
+            <input type="text" {% if payment_uuid %} required value="{{payment_uuid}}" {% endif %} name="payment_uuid" class="jsPaymentUUID">
+        </label>
+        <button onclick="getDataAndPay(); return false;">Оплатить</button>
+    </form>
+    <hr />
 
+    <section>
+        <ol>Тестовая карта:
+            <li>Номер карты: <code>4111 1111 1111 1111</code></li>
+            <li>ММ: <code>10</code></li>
+            <li>ГГ: <code>21</code> (текущий год)</li>
+            <li>CVC: <code>888</code></li>
+        </ol>
+    </section>
 <script>
+    const pathPaymentData = "/cloudpayments/payment_data/?payment_uuid="
+
     function getDataAndPay() {
-        var paymentUUID = document.querySelector('.jsPaymentUUID').value;
-        axios.get('/cloudpayments/payment_data/?payment_uuid=' + paymentUUID)
-            .then(function (paymentData) {
-                console.log(paymentData);
-                pay(paymentData);
-            })
+        const paymentUUID = document.querySelector('.jsPaymentUUID').value;
+
+        axios.get(pathPaymentData + paymentUUID)
+        .then(function (paymentData) {
+            pay(paymentData);
+        });
     }
 
 
     function pay(paymentData) {
-        var widget = new cp.CloudPayments();
-        widget.pay('auth', // или 'charge'
-            paymentData,
+        let widget = new cp.CloudPayments();
+        console.log('pay: ', paymentData.data);
+
+        let preparePaymentData = {
+            publicId: paymentData.data["publicId"],
+            description: paymentData.data["description"],
+            amount: Number(paymentData.data["amount"]),
+            currency: paymentData.data["currency"],
+            invoiceId: paymentData.data["invoiceId"],
+            skin: "mini"
+        }
+
+        widget.pay('auth',
+            preparePaymentData,
             {
                 onSuccess: function (options) { // success
                     //действие при успешной оплате
-                    alert('success');
+                    alert('Success. See console.');
+                    console.log(options, preparePaymentData);
                 },
                 onFail: function (reason, options) { // fail
                     //действие при неуспешной оплате
-                    alert('fail');
+                    alert('Fail. See console.');
+                    console.log(reason, options, preparePaymentData);
                 },
-                onComplete: function (paymentResult, options) { //Вызывается как только виджет получает от api.cloudpayments ответ с результатом транзакции.
+                onComplete: function (paymentResult, options) {
+                    //Вызывается как только виджет получает от api.cloudpayments ответ с результатом транзакции.
                     //например вызов вашей аналитики Facebook Pixel
-                    alert('complete')
+                    alert('Complete. See console.')
+                    console.log(paymentResult, options, preparePaymentData);
                 }
             }
         )
     };
+
 </script>
 </body>
 </html>
