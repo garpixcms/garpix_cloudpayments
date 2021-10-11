@@ -1,0 +1,1 @@
+from garpix_cloudpayments.service.cloudpayments import ServiceCloudpayments

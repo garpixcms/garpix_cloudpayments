@@ -1,7 +1,8 @@
-from garpixcms.urls import *  # noqa
+from garpixcms.urls import path, include, urlpatterns as _urlpatterns
 from .views import example_view
 
+
 urlpatterns = [
-    path('', example_view),
+    path('example/', example_view),
     path('cloudpayments/', include('garpix_cloudpayments.urls')),
-] + urlpatterns  # noqa
+] + _urlpatterns
