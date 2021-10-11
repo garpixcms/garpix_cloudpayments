@@ -1,10 +1,10 @@
 from django.urls import path
-from .views.pay import pay_view
-from .views.fail import fail_view
-from .views.payment_data import payment_data_view
+from .views import confirm_view, pay_view, fail_view, payment_data_view
+
 
 urlpatterns = [
-    path('pay/', pay_view),
-    path('fail/', fail_view),
-    path('payment_data/', payment_data_view),
+    path('confirm/', confirm_view, name='cloudpayments_confirm'),
+    path('pay/', pay_view, name='cloudpayments_pay'),
+    path('fail/', fail_view, name='cloudpayments_fail'),
+    path('payment_data/', payment_data_view, name='cloudpayments_payment_data'),
 ]
