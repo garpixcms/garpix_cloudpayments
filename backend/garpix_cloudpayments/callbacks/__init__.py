@@ -1,1 +1,1 @@
-from .callback import empty_callback
+from .callback import callback

@@ -14,7 +14,7 @@ ERROR_CODE = 13
 
 @csrf_exempt
 def confirm_view(request) -> Optional[JsonResponse]:
-    response_data = ServiceCloudpayments._get_response_data(request)
+    response_data = ServiceCloudpayments(request)._get_response_data()
 
     if response_data['code'] == SUCCESS_CODE:
         payment = Payment.objects.get(order_number=response_data['order_number'])

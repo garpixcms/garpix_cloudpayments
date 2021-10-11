@@ -9,7 +9,7 @@ from ..service.cloudpayments import SUCCESS_CODE, ServiceCloudpayments
 
 @csrf_exempt
 def pay_view(request) -> Optional[JsonResponse]:
-    response_data = ServiceCloudpayments._get_response_data(request)
+    response_data = ServiceCloudpayments(request)._get_response_data()
 
     if response_data['code'] == SUCCESS_CODE:
         payment = Payment.objects.get(order_number=response_data['order_number'])

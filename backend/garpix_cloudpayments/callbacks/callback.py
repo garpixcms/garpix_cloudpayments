@@ -1,6 +1,6 @@
 import logging
 from garpix_cloudpayments.models.choices import (
-    PAYMENT_STATUS_CANCELLED, PAYMENT_STATUS_DECLINED, PAYMENT_STATUS_AUTHORIZED
+    PAYMENT_STATUS_CANCELLED, PAYMENT_STATUS_DECLINED, PAYMENT_STATUS_AUTHORIZED, PAYMENT_STATUS_COMPLETED
 )
 
 
@@ -12,8 +12,9 @@ def callback(payment) -> int:
     print(payment)
 
     if payment.status == PAYMENT_STATUS_AUTHORIZED:
-        # Your a logic via order.paid()
         logging.info('Order paid success!')
+        # Your a logic via order.paid()
+        payment.status = PAYMENT_STATUS_COMPLETED
 
     elif payment.status in (PAYMENT_STATUS_CANCELLED, PAYMENT_STATUS_DECLINED):
         # Your a logic via  order.cancel()

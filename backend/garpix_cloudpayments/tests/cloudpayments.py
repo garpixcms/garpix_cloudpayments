@@ -19,7 +19,7 @@ class CloudpaymentsTests(APITestCase):
 
     def test_pay_order(self):
         order = self.create_test_order()
-        self.assertEqual(order.status, EnumStatusOrder.CONFIRMED)
+        self.assertEqual(order.status, EnumStatusOrder.CONFIRMED.value)
 
         payment, _ = Payment.objects.get_or_create(order_number=order.pk, price=order.total_price, is_test=True)
 
@@ -36,10 +36,10 @@ class CloudpaymentsTests(APITestCase):
         # # order = Order.objects.get(id=response_content.get('order_number'))
 
         # Simulate getting order from DB after CloudPayments processing again
-        order.status = EnumStatusOrder.PAID_UP
+        order.status = EnumStatusOrder.PAID_UP.value
         payment = Payment.objects.get(order_number=response_content.get('order_number'))
 
-        self.assertEqual(order.status, EnumStatusOrder.STATUS.PAID_UP)
+        self.assertEqual(order.status, EnumStatusOrder.PAID_UP.value)
         self.assertEqual(payment.status, PAYMENT_STATUS_COMPLETED)
 
     def test_confirm_order(self):
@@ -76,7 +76,7 @@ class CloudpaymentsTests(APITestCase):
         order = self.create_test_order()
         payment, _ = Payment.objects.get_or_create(order_number=order.pk, price=order.total_price, is_test=True)
 
-        response = self.client.post('/api/v1/cloudpayments/fail/', {
+        response = self.client.post('/cloudpayments/fail/', {
             "InvoiceId": payment.order_number,
             "Amount": payment.price,
             "Status": PAYMENT_STATUS_AWAITING_AUTHENTICATION
