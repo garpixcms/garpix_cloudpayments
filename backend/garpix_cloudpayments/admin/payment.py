@@ -13,8 +13,8 @@ class PaymentAdmin(admin.ModelAdmin):
     search_fields = ('order_number', )
 
     def pay_by_demo_form(self, request, queryset):
-        payment = queryset.first()
-        t = loader.get_template(Payment.template_name)
-        c = {'payment_uuid': payment.payment_uuid}
-        return HttpResponse(t.render(c, request))
-    pay_by_demo_form.short_description = 'Оплатить с помощью формы (1 платежка)'
+        for payment in queryset:
+            t = loader.get_template(Payment.template_name)
+            c = {'payment_uuid': payment.payment_uuid}
+            return HttpResponse(t.render(c, request))
+    pay_by_demo_form.short_description = 'Оплатить с помощью формы (не проводите массовые оплаты)'

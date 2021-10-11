@@ -45,7 +45,7 @@ class CloudpaymentsTests(APITestCase):
     def test_confirm_order(self):
         # Simulate order payment. Example: order.paid() order.save()
         order = self.create_test_order()
-        order.status = EnumStatusOrder.PAID_UP
+        order.status = EnumStatusOrder.PAID_UP.value
 
         payment = Payment.objects.get(order_number=order.pk, price=order.total_price, is_test=True)
 
@@ -69,7 +69,7 @@ class CloudpaymentsTests(APITestCase):
 
         payment = Payment.objects.get(order_number=response_content.get('order_number'))
 
-        self.assertEqual(order.status, EnumStatusOrder.PAID_UP)
+        self.assertEqual(order.status, EnumStatusOrder.PAID_UP.value)
         self.assertEqual(payment.status, PAYMENT_STATUS_COMPLETED)
 
     def test_fail_order(self):

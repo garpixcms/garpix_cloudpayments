@@ -9,8 +9,6 @@ def callback(payment) -> int:
     # Order.objects.get(pk=payment.order_number)
     # if order is None: raise ValidationError('Заказ на найден. Невозможно оплатить.')
 
-    print(payment)
-
     if payment.status == PAYMENT_STATUS_AUTHORIZED:
         logging.info('Order paid success!')
         # Your a logic via order.paid()
