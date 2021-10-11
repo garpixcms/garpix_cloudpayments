@@ -2,6 +2,8 @@ import calendar
 import datetime
 import json
 
+from django.urls import reverse
+
 from garpix_cloudpayments.models import Payment
 from garpix_cloudpayments.models.choices import (
     PAYMENT_STATUS_AUTHORIZED, PAYMENT_STATUS_COMPLETED, PAYMENT_STATUS_AWAITING_AUTHENTICATION)
@@ -21,13 +23,15 @@ class CloudpaymentsTests(APITestCase):
         order = self.create_test_order()
         self.assertEqual(order.status, EnumStatusOrder.CONFIRMED.value)
 
-        payment, _ = Payment.objects.get_or_create(order_number=order.pk, price=order.total_price, is_test=True)
+        payment = self.get_payment(order)
 
-        response = self.client.post('/cloudpayments/pay/', {
+        path = reverse('cloudpayments_pay')
+        payload = {
             "InvoiceId": payment.order_number,
             "Amount": payment.price,
             "Status": PAYMENT_STATUS_AUTHORIZED
-        }, format='json')
+        }
+        response = self.client.post(path, payload, format='json')
 
         response_content = json.loads(response.content.decode('utf8'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -47,10 +51,12 @@ class CloudpaymentsTests(APITestCase):
         order = self.create_test_order()
         order.status = EnumStatusOrder.PAID_UP.value
 
-        payment = Payment.objects.get(order_number=order.pk, price=order.total_price, is_test=True)
+        payment = self.get_payment(order)
 
         now = datetime.datetime.now()
-        response = self.client.post('/cloudpayments/confirm/', {
+
+        path = reverse('cloudpayments_confirm')
+        payload = {
             "TransactionId": 'TrAnSaCtIoN',
             "InvoiceId": payment.order_number,
             "Amount": payment.price,
@@ -61,8 +67,9 @@ class CloudpaymentsTests(APITestCase):
             "CardLastFour": '1111',
             "CartType": 'Visa',
             "CardExpDate": add_months(now.now(), 1),
-            "TestMode": 1,
-        }, format='json')
+            "TestMode": 1
+        }
+        response = self.client.post(path, payload,  format='json')
 
         response_content = json.loads(response.content.decode('utf8'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -74,23 +81,30 @@ class CloudpaymentsTests(APITestCase):
 
     def test_fail_order(self):
         order = self.create_test_order()
-        payment, _ = Payment.objects.get_or_create(order_number=order.pk, price=order.total_price, is_test=True)
+        payment = self.get_payment(order)
 
-        response = self.client.post('/cloudpayments/fail/', {
+        path = reverse('cloudpayments_fail')
+        payload = {
             "InvoiceId": payment.order_number,
             "Amount": payment.price,
             "Status": PAYMENT_STATUS_AWAITING_AUTHENTICATION
-        }, format='json')
+        }
+        response = self.client.post(path, payload, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_payment_data(self):
-        response = self.client.get('/cloudpayments/payment_data/')
+        path = reverse('cloudpayments_payment_data')
+        response = self.client.get(path)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_not_found_path(self):
         response = self.client.get('/cloudpayments/not_so_path/')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    @classmethod
+    def get_payment(cls, order: MockOrder) -> Payment:
+        return Payment.objects.get_or_create(order_number=order.pk, price=order.total_price, is_test=True)[0]
 
     @classmethod
     def create_test_order(cls):
