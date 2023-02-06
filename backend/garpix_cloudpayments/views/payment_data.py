@@ -1,8 +1,10 @@
 from django.http import JsonResponse
 from ..models.config import Config
 from ..models.payment import Payment
+from django.views.decorators.csrf import csrf_exempt
 
 
+@csrf_exempt
 def payment_data_view(request):
     config = Config.get_solo()
     payment_uuid = request.GET.get('payment_uuid')
