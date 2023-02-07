@@ -81,7 +81,7 @@ class CloudpaymentView(TemplateView):
     def _default_view(request) -> Optional[JsonResponse]:
         config = Config.get_solo()
         headers = request.headers
-        cloud_hmac = headers.get('X-Content-Hmac')
+        cloud_hmac = headers.get('x-content-hmac')
         hmac_data = request.body.decode('utf-8')
         local_hmac = hmac_sha256(hmac_data, config.password_api).decode('utf-8')
         request_data = None
