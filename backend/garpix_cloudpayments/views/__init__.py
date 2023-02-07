@@ -82,7 +82,11 @@ class CloudpaymentView(TemplateView):
         config = Config.get_solo()
         headers = request.headers
         cloud_hmac = headers.get('x-content-hmac')
-        hmac_data = request.body.decode('utf-8')
+        post_to_arr = []
+        for item in request.POST:
+            value = request.POST[item]
+            post_to_arr.append(f'{item}={value}')
+        hmac_data = '&'.join(post_to_arr)
         local_hmac = hmac_sha256(hmac_data, config.password_api).decode('utf-8')
         request_data = None
         if len(request.POST) > 1:
